@@ -9,9 +9,8 @@ const App = () => {
     <Router>
       <Routes>
         <Route path='/register' element={<RegistrationForm/>}/>
-      </Routes>
-      <Routes>
         <Route path='/login' element={<LoginForm/>}/>
+        
       </Routes>
     </Router>
   );

@@ -38,8 +38,7 @@ const RegistrationForm = () => {
           icon: "success",
           title: "Registration Successful!",
           text: "Redirecting to login page...",
-          timer: 1500, // Auto close after 3 seconds
-          showConfirmButton: false,
+          showConfirmButton: true,
         });
       }
     } catch (error) {
