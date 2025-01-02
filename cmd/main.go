@@ -23,6 +23,8 @@ func main() {
 
 	// Register the routes
 	r.HandleFunc("/register", db.RegistrationHandler).Methods("POST")
+	r.HandleFunc("/login",db.LoginHandler).Methods("POST")
+	
 
 	// CORS configuration
 	c := cors.New(cors.Options{

@@ -1,17 +1,13 @@
 package dbrepo
-
 import (
 	"encoding/json"
 	"net/http"
-
 	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
-
 type Repository struct{
 	DB *DBoperations
 }
-
 // RegistrationHandler handles the user registration form submission
 func (m *Repository) RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the request method is POST
@@ -35,7 +31,6 @@ func (m *Repository) RegistrationHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Email already registered", http.StatusConflict)
 		return
 	}
-
 	// Hash the user's password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -52,4 +47,30 @@ func (m *Repository) RegistrationHandler(w http.ResponseWriter, r *http.Request)
 	// Respond with success
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User registered successfully"))
+}
+// LoginHandler handles the login
+func (m *Repository) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+	var loginForm models.User
+	err := json.NewDecoder(r.Body).Decode(&loginForm)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+	hashedPassword, err := m.DB.GetHashedPasswordByEmail(loginForm.Email)
+	if err != nil {
+		http.Error(w, "User not found or database error", http.StatusInternalServerError)
+		return
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(loginForm.Password))
+	if err != nil {
+		http.Error(w, "Invalid password", http.StatusUnauthorized)
+		return
+	}
+	// If the passwords match, proceed with the login (e.g., create session, token)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Login successful"))
 }

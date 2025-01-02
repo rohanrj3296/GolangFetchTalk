@@ -17,3 +17,7 @@ type User struct {
 	CreatedAt  time.Time          `bson:"created_at"`     // Timestamp of when the user was created
 	UpdatedAt  time.Time          `bson:"updated_at"`     // Timestamp of the last update
 }
+type LoginForm struct{
+	Email string
+	Password string
+}

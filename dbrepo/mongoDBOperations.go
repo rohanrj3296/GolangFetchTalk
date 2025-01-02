@@ -95,3 +95,21 @@ func (m *DBoperations) CheckEmailExists(email string) (bool, error) {
     }
     return true, nil // Email exists
 }
+
+// GetHashedPasswordByEmail retrieves the hashed password for a given email
+func (m *DBoperations) GetHashedPasswordByEmail(email string) (string, error) {
+	var result struct {
+		Password string `bson:"password"`
+	}
+	db:=m.GetDatabase()
+	err:=db.Collection("users").FindOne(context.TODO(),bson.M{"email":email}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			
+			return "User Not Found!!", nil
+		}
+		return "Database Error", err }
+
+	return result.Password, nil
+}
+
