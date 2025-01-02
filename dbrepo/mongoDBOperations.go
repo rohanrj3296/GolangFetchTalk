@@ -1,5 +1,5 @@
-package utils
-/*
+package dbrepo
+
 import (
 	"context"
 	"fmt"
@@ -8,15 +8,34 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	
 )
+
+type DBoperations struct {
+
+}
+
+func(m *DBoperations) InsertUserIntoDB(u models.User)error{
+	db := m.GetDatabase()
+	collection := db.Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.InsertOne(ctx, u)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 
 var MongoClient *mongo.Client
 var MongoDatabase *mongo.Database // Holds the reference to the Instant_Chat database
 
-func() ConnectToMongo() error {
+func(m *DBoperations) ConnectToMongo() error {
 	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
@@ -53,12 +72,26 @@ func() ConnectToMongo() error {
 	fmt.Println("Connected to the database: Instant_Chat")
 
 	return nil
+}
 
 // GetDatabase returns the MongoDB database instance.
-func GetDatabase() *mongo.Database {
+func(m *DBoperations) GetDatabase() *mongo.Database {
 	if MongoDatabase == nil {
 		log.Fatal("MongoDatabase is not initialized. Call ConnectToMongo first.")
 	}
 	return MongoDatabase
 }
-*/
+
+
+func (m *DBoperations) CheckEmailExists(email string) (bool, error) {
+    var user models.User
+	db := m.GetDatabase()
+    err := db.Collection("users").FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return false, nil // Email does not exist
+        }
+        return false, err // Database error
+    }
+    return true, nil // Email exists
+}

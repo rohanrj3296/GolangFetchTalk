@@ -10,7 +10,7 @@ body {
 .navbar {
   display: flex;
   justify-content: space-between;
-  background-color: #343a40;
+  background-color:red;
   color: white;
   padding: 10px 20px;
 }

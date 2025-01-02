@@ -1,58 +1,45 @@
 package main
 
 import (
-	"context"
 	"log"
-	"time"
+	"net/http"
 
-	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
-	"github.com/rohanrj3296/GolangChatWebApp/internal/repository" //imported as utils
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/rohanrj3296/GolangChatWebApp/dbrepo"
+	"github.com/rs/cors"
+
+	"github.com/gorilla/mux"
 )
 
+type Repository struct {
+	DB *dbrepo.Repository
+}
+
 func main() {
-	// Connect to MongoDB
-	utils.ConnectToMongo()
+	// Initialize the DB operations
+	db := &dbrepo.Repository{}
 
-	// Get the "messages" collection
-	db := utils.GetDatabase()
-	collection := db.Collection("users")
+	// Initialize the router
+	r := mux.NewRouter()
 
-	/*// Create a sample message
-	message := models.Message{
-		ID:         primitive.NewObjectID(),
-		SenderID:   primitive.NewObjectID(),
-		ReceiverID: primitive.NewObjectID(),
-		Text:       "Hello, this is a test message2.",
-		Image:      "",
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
+	// Register the routes
+	r.HandleFunc("/register", db.RegistrationHandler).Methods("POST")
 
-	// Insert the message into the collection
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	// CORS configuration
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
+	handler := c.Handler(r)
 
-	_, err := collection.InsertOne(ctx, message)
+	// Connect to the database
+	db.DB.ConnectToMongo()
+
+	// Start the web server
+	log.Println("Server starting on http://localhost:8080")
+	err := http.ListenAndServe(":8080", handler)
 	if err != nil {
-		log.Fatalf("Failed to insert message: %v", err)
+		log.Fatal("Error starting server: ", err)
 	}
-
-	log.Println("Message inserted successfully!")*/
-
-	eg_user:=models.User{
-		ID:primitive.NewObjectID() ,
-		FirstName: "Rohan",
-		LastName: "Jadhav",
-		Email: "rohanjadhavrj3296@gmail.com",
-		Password: "ROHANjd@3296",
-
-	}
-	ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
-	defer cancel()
-	_,err:=collection.InsertOne(ctx,eg_user)
-	if err!=nil{
-		log.Fatal("Failed To insert The user",err)
-	}
-	log.Println("User Inserted Successfully")
 }

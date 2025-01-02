@@ -1,14 +1,19 @@
 // frontend/src/App.js
 import React from 'react';
-
-import LoginForm from './reg_login/login';
+import {BrowserRouter as Router,Routes,Route} from 'react-router-dom'
+import RegistrationForm from './reg_login/reg';//importing the Registration From
+import LoginForm from './reg_login/login'; //importing the Login Form
 
 const App = () => {
   return (
-    <div className="App">
-     
-      <LoginForm/>
-    </div>
+    <Router>
+      <Routes>
+        <Route path='/register' element={<RegistrationForm/>}/>
+      </Routes>
+      <Routes>
+        <Route path='/login' element={<LoginForm/>}/>
+      </Routes>
+    </Router>
   );
 };
 
