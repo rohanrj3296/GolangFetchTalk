@@ -23,8 +23,11 @@ func main() {
 
 	// Register the routes
 	r.HandleFunc("/register", db.RegistrationHandler).Methods("POST")
-	r.HandleFunc("/login",db.LoginHandler).Methods("POST")
-	
+	r.HandleFunc("/login",db.LoginHandler).Methods("POST",)
+	r.HandleFunc("/chat",db.AllUsersHandler).Methods("GET")
+	//r.HandleFunc("/getuserfromsession",db.GetUserFromSession).Methods("GET")
+
+	r.Handle("/getuserfromsession", middleware.CorsMiddleware(http.HandlerFunc(repository.GetUserFromSession)))
 
 	// CORS configuration
 	c := cors.New(cors.Options{
@@ -45,3 +48,10 @@ func main() {
 		log.Fatal("Error starting server: ", err)
 	}
 }
+
+
+
+
+
+
+

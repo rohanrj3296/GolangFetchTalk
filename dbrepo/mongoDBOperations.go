@@ -113,3 +113,45 @@ func (m *DBoperations) GetHashedPasswordByEmail(email string) (string, error) {
 	return result.Password, nil
 }
 
+func(m *DBoperations) GetUserIDByEmail(email string) (string,error){
+	var result struct{
+		UserID string `bson:"_id"`
+	}
+	db:=m.GetDatabase()
+	err:=db.Collection("users").FindOne(context.TODO(),bson.M{"email":email}).Decode(&result)
+	if err != nil {
+		// Return an empty string and the actual error
+		return "", fmt.Errorf("error fetching user ID by email: %w", err)
+	}
+	return result.UserID,nil
+}
+
+func (m *DBoperations) GetAllUserNames() ([]map[string]interface{}, error) {
+    // Define a slice to hold the results
+    var users []map[string]interface{}
+
+    // Get the MongoDB database
+    db := m.GetDatabase()
+
+    // Query all users from the 'users' collection
+    cursor, err := db.Collection("users").Find(context.TODO(), bson.M{})
+    if err != nil {
+        return nil, fmt.Errorf("error fetching users: %w", err)
+    }
+    defer cursor.Close(context.TODO())
+
+    // Iterate through the cursor and decode each document
+    for cursor.Next(context.TODO()) {
+        var user map[string]interface{}
+        if err := cursor.Decode(&user); err != nil {
+            return nil, fmt.Errorf("error decoding user: %w", err)
+        }
+        users = append(users, user)
+    }
+
+    if err := cursor.Err(); err != nil {
+        return nil, fmt.Errorf("cursor error: %w", err)
+    }
+
+    return users, nil
+}

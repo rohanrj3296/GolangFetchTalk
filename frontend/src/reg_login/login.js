@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios"; 
 import Swal from "sweetalert2"; 
 
+
 const LoginForm = () => {
   
   const [formData, setFormData] = useState({
@@ -44,7 +45,7 @@ const LoginForm = () => {
       Swal.fire({
         icon: "error",
         title: "Login Failed!",
-        text: error.response?.data || "Invalid email or password",
+        text: error.response?.data || "Invalid Credentials or Internal Server Error",
       });
     }
   };
