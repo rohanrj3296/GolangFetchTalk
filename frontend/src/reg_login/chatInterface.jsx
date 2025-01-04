@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../reg_login/chatInterface.css"; // Link to the CSS file
-
+import { getUserEmail } from './../utils/token';
 const ChatInterface = () => {
   const [users, setUsers] = useState([]); // State to store the fetched users
   const [selectedConversation, setSelectedConversation] = useState(null); // Tracks the selected conversation
@@ -18,42 +18,21 @@ const ChatInterface = () => {
         }
         const usersData = await usersResponse.json();
         console.log("Fetched users:", usersData); // Log fetched users
-
-        // Step 2: Fetch logged-in user details
-        const sessionResponse = await fetch(
-          "http://localhost:8080/getuserfromsession",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include", // Ensures cookies are sent with the request
-          }
-        );
-        
-
-        if (!sessionResponse.ok) {
-          throw new Error(
-            `Error fetching logged-in user details: ${sessionResponse.status}`
-          );
-        }
-
-        const sessionData = await sessionResponse.json();
-        console.log("Logged-in user details:", sessionData);
-
-        // Step 3: Filter out the logged-in user from the users list
-        setUserEmail(sessionData.email);
-        const filteredUsers = usersData.filter(
-          (user) => user.email !== sessionData.email
-        );
-        setUsers(filteredUsers);
+        setUsers(usersData);
       } catch (error) {
         console.error("Error during data fetching:", error);
       }
     };
-
+    const userEmail = getUserEmail();
+    setUserEmail(userEmail)
     fetchData(); // Call the fetchData function
+    console.log("Logged In User's EmailID Is: ",userEmail)
   }, []); // Empty dependency array ensures it runs once on component mount
+
+  
+
+
+
 
   // Function to change the theme
   const handleThemeChange = (newTheme) => {

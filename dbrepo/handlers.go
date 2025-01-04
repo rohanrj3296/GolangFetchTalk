@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	//"github.com/gorilla/mux"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/sessions"
 	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -84,35 +86,22 @@ func (m *Repository) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
 	}
-
-	// Start a session for the logged-in user
-	session, err := store.Get(r, "user-session")
+	//generating jwt token
+	token:=jwt.NewWithClaims(jwt.SigningMethodHS256,jwt.MapClaims{
+		"email":loginForm.Email,
+		"exp":time.Now().Add(time.Hour * 24).Unix(),
+	})
+	tokenString,err:=token.SignedString([]byte("SubhashBose"))
 	if err != nil {
-		http.Error(w, "Error getting session", http.StatusInternalServerError)
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
+		fmt.Println(err)
 		return
 	}
-
-	// Store user email in session (or other details)
-	session.Values["email"] = loginForm.Email
-	err = session.Save(r, w)
-	if err != nil {
-		http.Error(w, "Error saving session", http.StatusInternalServerError)
-		return
-	}
-
-	// If login is successful, return a response
-	response := map[string]interface{}{
-		"status": "Login successful",
-		"email":  loginForm.Email, // Send the email back in the response
-	}
-
-	// Set response headers and encode the response
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		http.Error(w, "Error sending response", http.StatusInternalServerError)
-	}
+    json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+
+	
+	
 }
 func (m *Repository) AllUsersHandler(w http.ResponseWriter, r *http.Request) {
     // Check if the request method is GET

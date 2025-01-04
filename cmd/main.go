@@ -6,8 +6,8 @@ import (
 
 	"github.com/rohanrj3296/GolangChatWebApp/dbrepo"
 	"github.com/rs/cors"
-
 	"github.com/gorilla/mux"
+	"github.com/rohanrj3296/GolangChatWebApp/middlewares"
 )
 
 type Repository struct {
@@ -23,11 +23,9 @@ func main() {
 
 	// Register the routes
 	r.HandleFunc("/register", db.RegistrationHandler).Methods("POST")
-	r.HandleFunc("/login",db.LoginHandler).Methods("POST",)
-	r.HandleFunc("/chat",db.AllUsersHandler).Methods("GET")
-	//r.HandleFunc("/getuserfromsession",db.GetUserFromSession).Methods("GET")
-
-	r.Handle("/getuserfromsession", middleware.CorsMiddleware(http.HandlerFunc(repository.GetUserFromSession)))
+	r.HandleFunc("/login", db.LoginHandler).Methods("POST")
+	r.HandleFunc("/chat", db.AllUsersHandler).Methods("GET")
+	r.Handle("/getuserfromsession", middlewares.CorsMiddleware(http.HandlerFunc(db.GetUserFromSession)))
 
 	// CORS configuration
 	c := cors.New(cors.Options{
@@ -39,7 +37,9 @@ func main() {
 	handler := c.Handler(r)
 
 	// Connect to the database
-	db.DB.ConnectToMongo()
+	if err := db.DB.ConnectToMongo(); err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
 
 	// Start the web server
 	log.Println("Server starting on http://localhost:8080")
@@ -48,10 +48,3 @@ func main() {
 		log.Fatal("Error starting server: ", err)
 	}
 }
-
-
-
-
-
-
-

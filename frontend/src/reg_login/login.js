@@ -5,8 +5,8 @@ import axios from "axios";
 import Swal from "sweetalert2"; 
 
 
+
 const LoginForm = () => {
-  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -15,7 +15,6 @@ const LoginForm = () => {
   const [responseMessage, setResponseMessage] = useState("");
   const navigate = useNavigate();
 
-  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -30,6 +29,9 @@ const LoginForm = () => {
         // On successful login
         setResponseMessage("Login successful!");
         navigate("/chat"); 
+
+        // Store the token in localStorage
+        localStorage.setItem("authToken", response.data.token);
 
         // Show success message
         Swal.fire({
@@ -49,6 +51,7 @@ const LoginForm = () => {
       });
     }
   };
+
 
   return (
     <div className="container">
