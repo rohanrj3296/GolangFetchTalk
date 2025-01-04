@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import "../reg_login/chatInterface.css"; // Link to the CSS file
-import { getUserEmail } from './../utils/token';
+import { getUserEmail } from "../utils/token";
+import ChatWindow from "../reg_login/chatWindow"; // Import the new ChatWindow component
+
 const ChatInterface = () => {
   const [users, setUsers] = useState([]); // State to store the fetched users
+  const [currentUser, setCurrentUser] = useState(null); // State to store logged-in user's details
   const [selectedConversation, setSelectedConversation] = useState(null); // Tracks the selected conversation
   const [showSettings, setShowSettings] = useState(false); // Tracks settings display state
   const [theme, setTheme] = useState("light"); // Tracks the current theme
-  const [userEmail, setUserEmail] = useState(""); // State to store logged-in user's email
 
   useEffect(() => {
     const fetchData = async () => {
+      const userEmail = getUserEmail(); // Get logged-in user's email
+
       try {
         // Step 1: Fetch all users
         const usersResponse = await fetch("http://localhost:8080/chat");
@@ -17,22 +21,23 @@ const ChatInterface = () => {
           throw new Error(`Error fetching users: ${usersResponse.status}`);
         }
         const usersData = await usersResponse.json();
-        console.log("Fetched users:", usersData); // Log fetched users
-        setUsers(usersData);
+
+        // Step 2: Find the current user's details
+        const loggedInUser = usersData.find((user) => user.email === userEmail);
+        setCurrentUser(loggedInUser);
+
+        // Step 3: Filter out the logged-in user from the list
+        const filteredUsers = usersData.filter(
+          (user) => user.email !== userEmail
+        );
+        setUsers(filteredUsers);
       } catch (error) {
         console.error("Error during data fetching:", error);
       }
     };
-    const userEmail = getUserEmail();
-    setUserEmail(userEmail)
+
     fetchData(); // Call the fetchData function
-    console.log("Logged In User's EmailID Is: ",userEmail)
   }, []); // Empty dependency array ensures it runs once on component mount
-
-  
-
-
-
 
   // Function to change the theme
   const handleThemeChange = (newTheme) => {
@@ -48,11 +53,26 @@ const ChatInterface = () => {
         <div className="navbar-links">
           <button>Profile</button>
           <button>Logout</button>
-          {/* Display the user's email as a button */}
-          {userEmail && <button className="email-button">{userEmail}</button>}
-          <button onClick={() => setShowSettings(!showSettings)}>
-            Settings
-          </button>
+          <button onClick={() => setShowSettings(!showSettings)}>Theme</button>
+          {/* Display the user's full name */}
+          {currentUser && (
+            <div className="user-profile-display">
+              <img
+                src={`https://via.placeholder.com/50?text=${
+                  currentUser.first_name?.charAt(0) || "U"
+                }${currentUser.last_name?.charAt(0) || ""}`}
+                alt={`${currentUser.first_name || "User"} ${
+                  currentUser.last_name || ""
+                }`}
+                className="profile-picture"
+              />
+              <div className="profile-info">
+                {`${currentUser.first_name || "User"} ${
+                  currentUser.last_name || ""
+                }`}
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -68,7 +88,7 @@ const ChatInterface = () => {
                 className={
                   selectedConversation?._id === user._id ? "active" : ""
                 }
-                data-user-id={user._id} // Store user ID as a data attribute
+                data-user-id={user._id}
               >
                 <img
                   src={`https://via.placeholder.com/50?text=${
@@ -82,8 +102,7 @@ const ChatInterface = () => {
                   <div className="name">
                     {`${user.first_name || "Unknown"} ${user.last_name || ""}`}
                   </div>
-                  <div className="status">Online</div>{" "}
-                  {/* Placeholder for status */}
+                  <div className="status">Online</div>
                 </div>
               </li>
             ))}
@@ -93,10 +112,7 @@ const ChatInterface = () => {
         {/* Main Content */}
         <div className="main-content">
           {selectedConversation ? (
-            <div className="chat-selected">
-              <h2>Chat with {selectedConversation.name}</h2>
-              <p>{`User ID: ${selectedConversation.userId}`}</p>
-            </div>
+            <ChatWindow selectedUser={selectedConversation} />
           ) : (
             <div className="no-chat-selected">
               <h2>No chat selected</h2>

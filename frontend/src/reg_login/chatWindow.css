@@ -1,0 +1,107 @@
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.chat-header {
+  background-color: #0078d7;
+  color: white;
+  padding: 10px 15px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  width: 1000px;
+  height: 80px;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height:800px;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  word-wrap: break-word;
+}
+
+.message.sent {
+  align-self: flex-end;
+  background-color: #dcf8c6;
+}
+
+.message.received {
+  align-self: flex-start;
+  background-color: #e4e6eb;
+}
+
+.message-sender {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.message-text {
+  font-size: 1rem;
+}
+
+.message-timestamp {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+.no-messages {
+  text-align: center;
+  color: #666;
+  font-size: 1rem;
+  margin-top: 20px;
+}
+
+.chat-input {
+  display: flex; /* Ensures input and button are aligned */
+  align-items: center;
+  padding: 10px; /* Optional: Adjust padding as needed */
+  gap: 8px; /* Space between input and button */
+}
+
+.chat-input input {
+  flex: 1; /* Makes input take up available space */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.chat-input button {
+  padding: 8px 16px; /* Compact padding */
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem; /* Adjust text size */
+  white-space: nowrap; /* Prevents wrapping of text */
+}
+
+.chat-input button {
+  min-width: 80px; /* Ensures button doesn't shrink too much */
+  width: auto; /* Adapts to content */
+}
