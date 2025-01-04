@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	//"github.com/gorilla/mux"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/sessions"
 	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,7 +16,6 @@ type Repository struct{
 	DB *DBoperations
 }
 
-var store = sessions.NewCookieStore([]byte("your-secret-key"))
 
 // RegistrationHandler handles the user registration form submission
 func (m *Repository) RegistrationHandler(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +90,7 @@ func (m *Repository) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		"email":loginForm.Email,
 		"exp":time.Now().Add(time.Hour * 24).Unix(),
 	})
-	tokenString,err:=token.SignedString([]byte("SubhashBose"))
+	tokenString,err:=token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		fmt.Println(err)
@@ -126,28 +125,4 @@ func (m *Repository) AllUsersHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 }
-func (m *Repository) GetUserFromSession(w http.ResponseWriter, r *http.Request) {
-	// Get the session
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		http.Error(w, `{"error":"Error getting session"}`, http.StatusInternalServerError)
-		return
-	}
 
-	// Retrieve the email from session
-	email, ok := session.Values["email"].(string)
-	if !ok || email == "" {
-		http.Error(w, `{"error":"No user found in session"}`, http.StatusUnauthorized)
-		return
-	}
-
-	// Set response headers
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	// Respond with the user's email
-	response := map[string]string{
-		"email": email,
-	}
-	json.NewEncoder(w).Encode(response)
-}

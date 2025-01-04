@@ -7,7 +7,7 @@ import (
 	"github.com/rohanrj3296/GolangChatWebApp/dbrepo"
 	"github.com/rs/cors"
 	"github.com/gorilla/mux"
-	"github.com/rohanrj3296/GolangChatWebApp/middlewares"
+	
 )
 
 type Repository struct {
@@ -25,7 +25,7 @@ func main() {
 	r.HandleFunc("/register", db.RegistrationHandler).Methods("POST")
 	r.HandleFunc("/login", db.LoginHandler).Methods("POST")
 	r.HandleFunc("/chat", db.AllUsersHandler).Methods("GET")
-	r.Handle("/getuserfromsession", middlewares.CorsMiddleware(http.HandlerFunc(db.GetUserFromSession)))
+	
 
 	// CORS configuration
 	c := cors.New(cors.Options{
