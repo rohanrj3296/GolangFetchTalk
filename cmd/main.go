@@ -25,6 +25,7 @@ func main() {
 	r.HandleFunc("/register", db.RegistrationHandler).Methods("POST")
 	r.HandleFunc("/login", db.LoginHandler).Methods("POST")
 	r.HandleFunc("/chat", db.AllUsersHandler).Methods("GET")
+	r.HandleFunc("/savemessage",db.SaveMessageHandler).Methods("POST")
 	
 
 	// CORS configuration

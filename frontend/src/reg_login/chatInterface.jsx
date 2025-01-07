@@ -112,7 +112,8 @@ const ChatInterface = () => {
         {/* Main Content */}
         <div className="main-content">
           {selectedConversation ? (
-            <ChatWindow selectedUser={selectedConversation} />
+            <ChatWindow selectedUser={selectedConversation}
+            currentUser={currentUser} />
           ) : (
             <div className="no-chat-selected">
               <h2>No chat selected</h2>

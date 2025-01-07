@@ -81,8 +81,6 @@ func(m *DBoperations) GetDatabase() *mongo.Database {
 	}
 	return MongoDatabase
 }
-
-
 func (m *DBoperations) CheckEmailExists(email string) (bool, error) {
     var user models.User
 	db := m.GetDatabase()
@@ -154,4 +152,16 @@ func (m *DBoperations) GetAllUserNames() ([]map[string]interface{}, error) {
     }
 
     return users, nil
+}
+func(m *DBoperations) InsertMessageIntoDB(message models.Message)error{
+	db := m.GetDatabase()
+	collection := db.Collection("messages")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.InsertOne(ctx, message)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }

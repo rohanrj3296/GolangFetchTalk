@@ -1,18 +1,37 @@
 import React, { useState } from "react";
-import "../reg_login/chatWindow.css"
+import "../reg_login/chatWindow.css";
+import { sendMessageToBackend } from "../MessageAPI/messageAPI";
 
-const ChatWindow = ({ selectedUser }) => {
+const ChatWindow = ({ selectedUser,currentUser }) => {
   const [messages, setMessages] = useState([]); // To store chat messages
   const [newMessage, setNewMessage] = useState(""); // To store the current message being typed
 
   // Function to send a new message
-  const sendMessage = () => {
+  const sendMessage = async() => {
     if (newMessage.trim()) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { text: newMessage, sender: "You", timestamp: new Date().toLocaleTimeString() },
-      ]);
-      setNewMessage("");
+      const timestamp = new Date().toISOString();
+      const messageData = {
+        sender_id:currentUser._id,
+        receiver_id:selectedUser._id,
+        time:timestamp,
+        actual_message:newMessage,
+
+      }
+      console.log(messageData)
+      try{
+        await sendMessageToBackend(messageData);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: newMessage, sender: "You", timestamp: new Date().toLocaleTimeString() },
+        ]);
+        setNewMessage("");
+        
+      }catch(error){
+        console.error("Failed To Send Message",error)
+
+      };
+      
+      
     }
   };
 

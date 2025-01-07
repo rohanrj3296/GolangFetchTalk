@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"os"
 	"time"
-
 	//"github.com/gorilla/mux"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
 	"golang.org/x/crypto/bcrypt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 type Repository struct{
 	DB *DBoperations
@@ -125,4 +125,43 @@ func (m *Repository) AllUsersHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 }
+func (m *Repository) SaveMessageHandler(w http.ResponseWriter, r *http.Request) {
+    var message models.Message
 
+    // Decode JSON payload
+    err := json.NewDecoder(r.Body).Decode(&message)
+    if err != nil {
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return
+    }
+
+    // Validate and convert sender_id
+    _, err = primitive.ObjectIDFromHex(message.SenderID)
+    if err != nil {
+        http.Error(w, "Invalid sender_id format", http.StatusBadRequest)
+        return
+    }
+
+    // Validate and convert receiver_id
+    _, err = primitive.ObjectIDFromHex(message.ReceiverID)
+    if err != nil {
+        http.Error(w, "Invalid receiver_id format", http.StatusBadRequest)
+        return
+    }
+
+    // Set timestamps
+    now := primitive.NewDateTimeFromTime(time.Now())
+    message.CreatedAt = now
+    message.UpdatedAt = now
+
+    // Insert message into the database using InsertMessageIntoDB
+    err = m.DB.InsertMessageIntoDB(message)
+    if err != nil {
+        http.Error(w, "Error saving message", http.StatusInternalServerError)
+        return
+    }
+
+    // Respond with success
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(map[string]string{"message": "Message saved successfully"})
+}
