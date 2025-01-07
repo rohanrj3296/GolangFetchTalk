@@ -165,3 +165,44 @@ func(m *DBoperations) InsertMessageIntoDB(message models.Message)error{
 	return nil
 
 }
+func (m *DBoperations) GetMessages(sender_id, receiver_id string) ([]map[string]interface{}, error) {
+    var messages []map[string]interface{}
+
+    // Get the MongoDB database
+    db := m.GetDatabase()
+
+    // Define the filter to fetch messages where senderid and receiverid match
+    filter := bson.M{
+        "$or": []bson.M{
+            {"senderid": sender_id, "receiverid": receiver_id},
+            {"senderid": receiver_id, "receiverid": sender_id},
+        },
+    }
+
+    // Define the options to sort messages in chronological order based on the 'time' field
+    findOptions := options.Find()
+    findOptions.SetSort(bson.D{{Key: "time", Value: 1}}) // 1 for ascending order
+
+    // Query the 'messages' collection
+    cursor, err := db.Collection("messages").Find(context.TODO(), filter, findOptions)
+    if err != nil {
+        return nil, fmt.Errorf("error fetching messages: %w", err)
+    }
+    defer cursor.Close(context.TODO())
+
+    // Iterate through the cursor and decode each document
+    for cursor.Next(context.TODO()) {
+        var message map[string]interface{}
+        if err := cursor.Decode(&message); err != nil {
+            return nil, fmt.Errorf("error decoding message: %w", err)
+        }
+        messages = append(messages, message)
+    }
+
+    // Check for cursor errors
+    if err := cursor.Err(); err != nil {
+        return nil, fmt.Errorf("cursor error: %w", err)
+    }
+
+    return messages, nil
+}

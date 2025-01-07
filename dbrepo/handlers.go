@@ -165,3 +165,46 @@ func (m *Repository) SaveMessageHandler(w http.ResponseWriter, r *http.Request) 
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(map[string]string{"message": "Message saved successfully"})
 }
+// Handler to retrieve messages in chronological order
+func (m *Repository) GetMessagesWithSenderReceiverIDSHandler(w http.ResponseWriter, r *http.Request) {
+    // Check if the request method is POST
+    if r.Method != http.MethodPost {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+        return
+    }
+
+    // Define a struct to parse the JSON request body
+    var requestBody struct {
+        SenderID   string `json:"sender_id"`
+        ReceiverID string `json:"receiver_id"`
+    }
+
+    // Decode the JSON body
+    if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+        http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+        return
+    }
+	fmt.Println(requestBody.SenderID)
+	fmt.Println(requestBody.ReceiverID)
+    // Validate the parsed data
+    if requestBody.SenderID == "" || requestBody.ReceiverID == "" {
+        http.Error(w, "Missing sender_id or receiver_id in the request body", http.StatusBadRequest)
+        return
+    }
+
+    // Fetch messages from the database using sender_id and receiver_id
+    messages, err := m.DB.GetMessages(requestBody.SenderID, requestBody.ReceiverID)
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Error fetching messages: %v", err), http.StatusInternalServerError)
+        return
+    }
+
+    // Set response header to application/json
+    w.Header().Set("Content-Type", "application/json")
+
+    // Encode the messages to JSON and write the response
+    if err := json.NewEncoder(w).Encode(messages); err != nil {
+        http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+        return
+    }
+}
