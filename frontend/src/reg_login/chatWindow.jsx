@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../reg_login/chatWindow.css";
 import {
   sendMessageToBackend,
@@ -8,42 +8,67 @@ import {
 const ChatWindow = ({ selectedUser, currentUser }) => {
   const [messages, setMessages] = useState([]); // Initialize messages as an empty array
   const [newMessage, setNewMessage] = useState(""); // Store the current message being typed
+  const chatEndRef = useRef(null); // To scroll to the bottom of the chat window
 
-  // Function to fetch messages when the component mounts or when selectedUser changes
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (selectedUser && currentUser) {
-        try {
-          const messageData = {
-            sender_id: currentUser._id,
-            receiver_id: selectedUser._id,
-          };
+  // Function to fetch messages
+  const fetchMessages = async () => {
+    if (selectedUser && currentUser) {
+      try {
+        const messageData = {
+          sender_id: currentUser._id,
+          receiver_id: selectedUser._id,
+        };
 
-          const fetchedMessages = await fetchMessagesFromBackend(messageData);
-          console.log("Fetched messages from backend:", fetchedMessages);
+        const fetchedMessages = await fetchMessagesFromBackend(messageData);
 
-          // Process the messages to include time and sort them by time
-          const messagesWithTime = fetchedMessages.map((message) => ({
-            sender_id: message.senderid, // Use senderid from the backend
-            receiver_id: message.receiverid, // Use receiverid from the backend
-            text: message.actualmessage, // Map actualmessage from the backend to text
-            time: new Date(message.createdat).toISOString(), // Ensure time is a valid ISO string
-          }));
+        // Process the messages to include time
+        const messagesWithTime = fetchedMessages.map((message) => ({
+          sender_id: message.senderid, // Use senderid from the backend
+          receiver_id: message.receiverid, // Use receiverid from the backend
+          text: message.actualmessage, // Map actualmessage from the backend to text
+          time: new Date(message.createdat).toISOString(), // Ensure time is a valid ISO string
+        }));
 
-          // Sort messages by time
-          messagesWithTime.sort((a, b) => new Date(a.time) - new Date(b.time));
-          console.log("Sorted messages:", messagesWithTime);
+        // Sort messages by time
+        messagesWithTime.sort((a, b) => new Date(a.time) - new Date(b.time));
 
-          // Set the sorted messages
-          setMessages(messagesWithTime || []);
-        } catch (error) {
-          console.error("Error fetching messages:", error);
-        }
+        // Merge new messages with existing ones (avoid duplicates)
+        setMessages((prevMessages) => {
+          const existingIds = new Set(prevMessages.map((msg) => msg.time));
+          const newMessages = messagesWithTime.filter(
+            (msg) => !existingIds.has(msg.time)
+          );
+          return [...prevMessages, ...newMessages];
+        });
+      } catch (error) {
+        console.error("Error fetching messages:", error);
       }
-    };
+    }
+  };
 
-    fetchMessages();
+  // Scroll to the bottom of the chat window
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Fetch messages on component mount and set up polling
+  useEffect(() => {
+    if (selectedUser && currentUser) {
+      fetchMessages(); // Fetch messages initially
+      scrollToBottom();
+
+      const interval = setInterval(() => {
+        fetchMessages();
+      }, 1000); // Poll every 2 seconds
+
+      return () => clearInterval(interval); // Clean up interval on unmount
+    }
   }, [selectedUser, currentUser]);
+
+  // Scroll to the bottom whenever messages are updated
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Function to send a new message
   const sendMessage = async () => {
@@ -58,13 +83,14 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
       try {
         await sendMessageToBackend(messageData); // Save message to the backend
 
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            ...messageData,
-            sender_id: currentUser._id, // Add sender ID for proper rendering
-          },
-        ]);
+        // Add the new message directly to the state if it doesn't already exist
+        setMessages((prevMessages) => {
+          const existingIds = new Set(prevMessages.map((msg) => msg.time));
+          if (!existingIds.has(timestamp)) {
+            return [...prevMessages, messageData];
+          }
+          return prevMessages;
+        });
 
         setNewMessage(""); // Clear input field
       } catch (error) {
@@ -104,6 +130,7 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
             No messages yet. Start the conversation!
           </p>
         )}
+        <div ref={chatEndRef} /> {/* Reference to scroll to the bottom */}
       </div>
       <div className="chat-input">
         <input
