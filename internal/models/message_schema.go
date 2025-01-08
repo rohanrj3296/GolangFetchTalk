@@ -8,7 +8,7 @@ type Message struct {
     SenderID    string             `json:"sender_id"`
     ReceiverID  string             `json:"receiver_id"`
     Time        string             `json:"time"`
-    ActualMessage string           `json:"actual_message"`
+    ActualMessage string           `json:"text"`
     CreatedAt   primitive.DateTime `json:"created_at,omitempty"`
     UpdatedAt   primitive.DateTime `json:"updated_at,omitempty"`
 }

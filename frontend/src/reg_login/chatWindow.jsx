@@ -6,30 +6,38 @@ import {
 } from "../MessageAPI/messageAPI";
 
 const ChatWindow = ({ selectedUser, currentUser }) => {
-  const [messages, setMessages] = useState([]); // To store chat messages
-  const [newMessage, setNewMessage] = useState(""); // To store the current message being typed
+  const [messages, setMessages] = useState([]); // Initialize messages as an empty array
+  const [newMessage, setNewMessage] = useState(""); // Store the current message being typed
 
   // Function to fetch messages when the component mounts or when selectedUser changes
   useEffect(() => {
     const fetchMessages = async () => {
       if (selectedUser && currentUser) {
-        // Create the JSON data object for sender and receiver IDs
-        const messageRequestData = {
-          sender_id: currentUser._id,
-          receiver_id: selectedUser._id,
-        };
-        console.log(messageRequestData)
-
         try {
-          // Send the messageRequestData as JSON to the backend
-          const fetchedMessages = await fetchMessagesFromBackend(
-            messageRequestData
-          );
-          console.log("Fetched Messages:", fetchedMessages); // Log messages to console
-          // Optionally, you can update state with fetched messages if needed
-          setMessages(fetchedMessages);
+          const messageData = {
+            sender_id: currentUser._id,
+            receiver_id: selectedUser._id,
+          };
+
+          const fetchedMessages = await fetchMessagesFromBackend(messageData);
+          console.log("Fetched messages from backend:", fetchedMessages);
+
+          // Process the messages to include time and sort them by time
+          const messagesWithTime = fetchedMessages.map((message) => ({
+            sender_id: message.senderid, // Use senderid from the backend
+            receiver_id: message.receiverid, // Use receiverid from the backend
+            text: message.actualmessage, // Map actualmessage from the backend to text
+            time: new Date(message.createdat).toISOString(), // Ensure time is a valid ISO string
+          }));
+
+          // Sort messages by time
+          messagesWithTime.sort((a, b) => new Date(a.time) - new Date(b.time));
+          console.log("Sorted messages:", messagesWithTime);
+
+          // Set the sorted messages
+          setMessages(messagesWithTime || []);
         } catch (error) {
-          console.error("Failed to fetch messages:", error);
+          console.error("Error fetching messages:", error);
         }
       }
     };
@@ -40,27 +48,27 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
   // Function to send a new message
   const sendMessage = async () => {
     if (newMessage.trim()) {
-      const timestamp = new Date().toISOString();
+      const timestamp = new Date().toISOString(); // Ensure it's an ISO string
       const messageData = {
         sender_id: currentUser._id,
         receiver_id: selectedUser._id,
-        time: timestamp,
-        actual_message: newMessage,
+        time: timestamp, // Ensure valid timestamp
+        text: newMessage,
       };
-      console.log(messageData);
       try {
-        await sendMessageToBackend(messageData);
+        await sendMessageToBackend(messageData); // Save message to the backend
+
         setMessages((prevMessages) => [
           ...prevMessages,
           {
-            text: newMessage,
-            sender: "You",
-            timestamp: new Date().toLocaleTimeString(),
+            ...messageData,
+            sender_id: currentUser._id, // Add sender ID for proper rendering
           },
         ]);
-        setNewMessage("");
+
+        setNewMessage(""); // Clear input field
       } catch (error) {
-        console.error("Failed To Send Message", error);
+        console.error("Error sending message:", error);
       }
     }
   };
@@ -76,12 +84,19 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
             <div
               key={index}
               className={`message ${
-                message.sender === "You" ? "sent" : "received"
+                message.sender_id === currentUser._id ? "sent" : "received"
               }`}
             >
-              <span className="message-sender">{message.sender}:</span>
+              <span className="message-sender">
+                {message.sender_id === currentUser._id
+                  ? "You"
+                  : selectedUser.first_name}
+                :
+              </span>
               <span className="message-text">{message.text}</span>
-              <span className="message-timestamp">{message.timestamp}</span>
+              <span className="message-timestamp">
+                {new Date(message.time).toLocaleTimeString()}
+              </span>
             </div>
           ))
         ) : (

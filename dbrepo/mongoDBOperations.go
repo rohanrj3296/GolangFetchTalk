@@ -165,7 +165,7 @@ func(m *DBoperations) InsertMessageIntoDB(message models.Message)error{
 	return nil
 
 }
-func (m *DBoperations) GetMessages(sender_id, receiver_id string) ([]map[string]interface{}, error) {
+func (m *DBoperations) GetMessagesWhereCurrentUserIsSender(sender_id, receiver_id string) ([]map[string]interface{}, error) {
     var messages []map[string]interface{}
 
     // Get the MongoDB database
@@ -175,7 +175,8 @@ func (m *DBoperations) GetMessages(sender_id, receiver_id string) ([]map[string]
     filter := bson.M{
         "$or": []bson.M{
             {"senderid": sender_id, "receiverid": receiver_id},
-            {"senderid": receiver_id, "receiverid": sender_id},
+			{"senderid": receiver_id,"receiverid": sender_id},
+            
         },
     }
 

@@ -134,6 +134,11 @@ func (m *Repository) SaveMessageHandler(w http.ResponseWriter, r *http.Request) 
         http.Error(w, "Invalid request payload", http.StatusBadRequest)
         return
     }
+	 // Check if the ActualMessage field is empty
+	 if message.ActualMessage == "" {
+        http.Error(w, "Message text cannot be empty", http.StatusBadRequest)
+        return
+    }
 
     // Validate and convert sender_id
     _, err = primitive.ObjectIDFromHex(message.SenderID)
@@ -153,6 +158,7 @@ func (m *Repository) SaveMessageHandler(w http.ResponseWriter, r *http.Request) 
     now := primitive.NewDateTimeFromTime(time.Now())
     message.CreatedAt = now
     message.UpdatedAt = now
+	fmt.Println(message)
 
     // Insert message into the database using InsertMessageIntoDB
     err = m.DB.InsertMessageIntoDB(message)
@@ -172,7 +178,6 @@ func (m *Repository) GetMessagesWithSenderReceiverIDSHandler(w http.ResponseWrit
         http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
         return
     }
-
     // Define a struct to parse the JSON request body
     var requestBody struct {
         SenderID   string `json:"sender_id"`
@@ -193,7 +198,7 @@ func (m *Repository) GetMessagesWithSenderReceiverIDSHandler(w http.ResponseWrit
     }
 
     // Fetch messages from the database using sender_id and receiver_id
-    messages, err := m.DB.GetMessages(requestBody.SenderID, requestBody.ReceiverID)
+    messages, err := m.DB.GetMessagesWhereCurrentUserIsSender(requestBody.SenderID, requestBody.ReceiverID)
     if err != nil {
         http.Error(w, fmt.Sprintf("Error fetching messages: %v", err), http.StatusInternalServerError)
         return
