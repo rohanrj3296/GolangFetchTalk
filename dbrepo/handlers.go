@@ -3,14 +3,16 @@ package dbrepo
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
+
 	//"github.com/gorilla/mux"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rohanrj3296/GolangChatWebApp/internal/models"
-	"golang.org/x/crypto/bcrypt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 type Repository struct{
 	DB *DBoperations
@@ -212,4 +214,45 @@ func (m *Repository) GetMessagesWithSenderReceiverIDSHandler(w http.ResponseWrit
         http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
         return
     }
+}
+
+func (m *Repository) UploadProfilePicToDB(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse the multipart form
+	err := r.ParseMultipartForm(10 << 20) // Limit upload size to 10 MB
+	if err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
+
+	// Get the uploaded file
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "File upload failed", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Read file content into fileBytes
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Unable to read file", http.StatusInternalServerError)
+		return
+	}
+
+	// Call the function to upload the image to the DB
+	err = m.DB.UploadImageToDB(r.FormValue("userId"), fileBytes)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to upload image: %v", err), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("User ID:", r.FormValue("userId")) // Debugging log to check user ID
+
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Image uploaded successfully!")
 }

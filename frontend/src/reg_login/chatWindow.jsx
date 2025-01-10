@@ -11,6 +11,7 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
   const chatEndRef = useRef(null); // To scroll to the bottom of the chat window
 
   // Function to fetch messages
+  // Function to fetch messages
   const fetchMessages = async () => {
     if (selectedUser && currentUser) {
       try {
@@ -21,6 +22,8 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
 
         const fetchedMessages = await fetchMessagesFromBackend(messageData);
 
+        console.log("Fetched messages from backend:", fetchedMessages);
+
         // Process the messages to include time
         const messagesWithTime = fetchedMessages.map((message) => ({
           sender_id: message.senderid, // Use senderid from the backend
@@ -29,15 +32,22 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
           time: new Date(message.createdat).toISOString(), // Ensure time is a valid ISO string
         }));
 
+        console.log("Processed messages with time:", messagesWithTime);
+
         // Sort messages by time
         messagesWithTime.sort((a, b) => new Date(a.time) - new Date(b.time));
+        console.log("Sorted messages by time:", messagesWithTime);
 
-        // Merge new messages with existing ones (avoid duplicates)
+        // Update messages without duplication
         setMessages((prevMessages) => {
           const existingIds = new Set(prevMessages.map((msg) => msg.time));
           const newMessages = messagesWithTime.filter(
             (msg) => !existingIds.has(msg.time)
           );
+
+          console.log("Existing message times:", Array.from(existingIds));
+          console.log("New messages after filtering duplicates:", newMessages);
+
           return [...prevMessages, ...newMessages];
         });
       } catch (error) {
@@ -48,28 +58,40 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
 
   // Scroll to the bottom of the chat window
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+      console.log("Scrolled to bottom of chat window.");
+    }
   };
 
   // Fetch messages on component mount and set up polling
   useEffect(() => {
     if (selectedUser && currentUser) {
+      console.log("Chat window opened for user:", selectedUser.first_name);
       fetchMessages(); // Fetch messages initially
       scrollToBottom();
 
       const interval = setInterval(() => {
+        console.log("Polling for new messages...");
         fetchMessages();
-      }, 1000); // Poll every 2 seconds
+      }, 1000); // Poll every 1 second
 
-      return () => clearInterval(interval); // Clean up interval on unmount
+      return () => {
+        clearInterval(interval); // Clean up interval on unmount
+        console.log("Chat window closed, polling stopped.");
+      };
     }
   }, [selectedUser, currentUser]);
 
   // Scroll to the bottom whenever messages are updated
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+    console.log("Messages updated:", messages);
   }, [messages]);
 
+  // Function to send a new message
   // Function to send a new message
   const sendMessage = async () => {
     if (newMessage.trim()) {
@@ -83,12 +105,24 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
       try {
         await sendMessageToBackend(messageData); // Save message to the backend
 
-        // Add the new message directly to the state if it doesn't already exist
+        console.log("Message sent to backend:", messageData);
+
+        // Add the new message directly to the state
         setMessages((prevMessages) => {
           const existingIds = new Set(prevMessages.map((msg) => msg.time));
+
+          console.log(
+            "Existing message times before adding new:",
+            Array.from(existingIds)
+          );
+
           if (!existingIds.has(timestamp)) {
-            return [...prevMessages, messageData];
+            const updatedMessages = [...prevMessages, messageData];
+            console.log("Updated messages after sending:", updatedMessages);
+            return updatedMessages;
           }
+
+          console.warn("Duplicate message detected and ignored:", messageData);
           return prevMessages;
         });
 
@@ -108,7 +142,7 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
         {messages.length > 0 ? (
           messages.map((message, index) => (
             <div
-              key={index}
+              key={message.time} // Use unique timestamp as key
               className={`message ${
                 message.sender_id === currentUser._id ? "sent" : "received"
               }`}
@@ -138,6 +172,11 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
           placeholder="Type your message here..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              sendMessage();
+            }
+          }}
         />
         <button onClick={sendMessage}>Send</button>
       </div>

@@ -207,3 +207,46 @@ func (m *DBoperations) GetMessagesWhereCurrentUserIsSender(sender_id, receiver_i
 
     return messages, nil
 }
+
+func (m *DBoperations) UploadImageToDB(user_id string, fileBytes []byte) error {
+	db := m.GetDatabase() // Get the database instance
+	profilePics := db.Collection("profilepics")
+
+	// Convert user_id to ObjectID if necessary (assuming user_id is a string, but you can change this to an ObjectID if needed)
+	// If user_id is a string and you need ObjectID, you'd need conversion here.
+
+	// Try to update the existing user's profile picture
+	result, err := profilePics.UpdateOne(
+		context.Background(),
+		bson.M{"user_id": user_id}, // Find the user by user_id
+		bson.M{
+			"$set": bson.M{
+				"picture":   fileBytes,   // Store the image data in 'picture' field
+				"updated_at": time.Now(), // Add timestamp to the update
+			},
+		},
+	)
+
+	// If no record is updated (meaning the user_id didn't exist), insert a new record
+	if err != nil {
+		return fmt.Errorf("failed to update profile picture: %v", err)
+	}
+
+	if result.MatchedCount == 0 {
+		// Create a new record if the user_id doesn't exist in the collection
+		_, err := profilePics.InsertOne(
+			context.Background(),
+			bson.M{
+				"user_id":  user_id,
+				"picture":  fileBytes,
+				"updated_at": time.Now(),
+			},
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to insert profile picture: %v", err)
+		}
+	}
+
+	return nil
+}

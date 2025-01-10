@@ -2,31 +2,30 @@ import React, { useEffect, useState } from "react";
 import "../reg_login/chatInterface.css"; // Link to the CSS file
 import { getUserEmail } from "../utils/token";
 import ChatWindow from "../reg_login/chatWindow"; // Import the new ChatWindow component
+import ProfileModal from "../reg_login/profileModal"; // Import ProfileModal
 
 const ChatInterface = () => {
-  const [users, setUsers] = useState([]); // State to store the fetched users
-  const [currentUser, setCurrentUser] = useState(null); // State to store logged-in user's details
-  const [selectedConversation, setSelectedConversation] = useState(null); // Tracks the selected conversation
-  const [showSettings, setShowSettings] = useState(false); // Tracks settings display state
-  const [theme, setTheme] = useState("light"); // Tracks the current theme
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [theme, setTheme] = useState("light");
+  const [showProfileModal, setShowProfileModal] = useState(false); // State for profile modal
 
   useEffect(() => {
     const fetchData = async () => {
-      const userEmail = getUserEmail(); // Get logged-in user's email
+      const userEmail = getUserEmail();
 
       try {
-        // Step 1: Fetch all users
         const usersResponse = await fetch("http://localhost:8080/chat");
         if (!usersResponse.ok) {
           throw new Error(`Error fetching users: ${usersResponse.status}`);
         }
         const usersData = await usersResponse.json();
 
-        // Step 2: Find the current user's details
         const loggedInUser = usersData.find((user) => user.email === userEmail);
         setCurrentUser(loggedInUser);
 
-        // Step 3: Filter out the logged-in user from the list
         const filteredUsers = usersData.filter(
           (user) => user.email !== userEmail
         );
@@ -36,25 +35,22 @@ const ChatInterface = () => {
       }
     };
 
-    fetchData(); // Call the fetchData function
-  }, []); // Empty dependency array ensures it runs once on component mount
+    fetchData();
+  }, []);
 
-  // Function to change the theme
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme); // Apply theme to the entire app
+    document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   return (
     <div className={`chat-interface ${theme}`}>
-      {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-brand">FetchTalk</div>
         <div className="navbar-links">
-          <button>Profile</button>
+          <button onClick={() => setShowProfileModal(true)}>Profile</button>
           <button>Logout</button>
           <button onClick={() => setShowSettings(!showSettings)}>Theme</button>
-          {/* Display the user's full name */}
           {currentUser && (
             <div className="user-profile-display">
               <img
@@ -77,7 +73,6 @@ const ChatInterface = () => {
       </nav>
 
       <div className="content-wrapper">
-        {/* Sidebar */}
         <div className="sidebar">
           <h2>Contacts</h2>
           <ul>
@@ -109,11 +104,12 @@ const ChatInterface = () => {
           </ul>
         </div>
 
-        {/* Main Content */}
         <div className="main-content">
           {selectedConversation ? (
-            <ChatWindow selectedUser={selectedConversation}
-            currentUser={currentUser} />
+            <ChatWindow
+              selectedUser={selectedConversation}
+              currentUser={currentUser}
+            />
           ) : (
             <div className="no-chat-selected">
               <h2>No chat selected</h2>
@@ -123,7 +119,6 @@ const ChatInterface = () => {
         </div>
       </div>
 
-      {/* Settings Panel */}
       {showSettings && (
         <div className="settings">
           <div className="settings-header">
@@ -143,6 +138,13 @@ const ChatInterface = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {showProfileModal && (
+        <ProfileModal
+          currentUser={currentUser}
+          onClose={() => setShowProfileModal(false)}
+        />
       )}
     </div>
   );

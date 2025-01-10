@@ -27,6 +27,7 @@ func main() {
 	r.HandleFunc("/chat", db.AllUsersHandler).Methods("GET")
 	r.HandleFunc("/savemessage",db.SaveMessageHandler).Methods("POST")
 	r.HandleFunc("/getmessages",db.GetMessagesWithSenderReceiverIDSHandler).Methods("POST")
+	r.HandleFunc("/uploadprofilepicture",db.UploadProfilePicToDB).Methods("POST")
 	
 
 	// CORS configuration
