@@ -11,7 +11,6 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
   const chatEndRef = useRef(null); // To scroll to the bottom of the chat window
 
   // Function to fetch messages
-  // Function to fetch messages
   const fetchMessages = async () => {
     if (selectedUser && currentUser) {
       try {
@@ -38,16 +37,13 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
         messagesWithTime.sort((a, b) => new Date(a.time) - new Date(b.time));
         console.log("Sorted messages by time:", messagesWithTime);
 
-        // Update messages without duplication
         setMessages((prevMessages) => {
-          const existingIds = new Set(prevMessages.map((msg) => msg.time));
-          const newMessages = messagesWithTime.filter(
-            (msg) => !existingIds.has(msg.time)
-          );
-
-          console.log("Existing message times:", Array.from(existingIds));
-          console.log("New messages after filtering duplicates:", newMessages);
-
+          const latestTime = prevMessages.length > 0 ? new Date(prevMessages[prevMessages.length - 1].time).getTime() : 0;
+  
+          const newMessages = messagesWithTime.filter((msg) => new Date(msg.time).getTime() > latestTime);
+  
+          console.log("New messages to append:", newMessages);
+  
           return [...prevMessages, ...newMessages];
         });
       } catch (error) {
@@ -92,7 +88,6 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
   }, [messages]);
 
   // Function to send a new message
-  // Function to send a new message
   const sendMessage = async () => {
     if (newMessage.trim()) {
       const timestamp = new Date().toISOString(); // Ensure it's an ISO string
@@ -107,25 +102,6 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
 
         console.log("Message sent to backend:", messageData);
 
-        // Add the new message directly to the state
-        setMessages((prevMessages) => {
-          const existingIds = new Set(prevMessages.map((msg) => msg.time));
-
-          console.log(
-            "Existing message times before adding new:",
-            Array.from(existingIds)
-          );
-
-          if (!existingIds.has(timestamp)) {
-            const updatedMessages = [...prevMessages, messageData];
-            console.log("Updated messages after sending:", updatedMessages);
-            return updatedMessages;
-          }
-
-          console.warn("Duplicate message detected and ignored:", messageData);
-          return prevMessages;
-        });
-
         setNewMessage(""); // Clear input field
       } catch (error) {
         console.error("Error sending message:", error);
@@ -136,7 +112,8 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
   return (
     <div className="chat-window">
       <div className="chat-header">
-        <h2>{`${selectedUser.first_name} ${selectedUser.last_name}`}</h2>
+      <h2>{`${selectedUser.first_name} ${selectedUser.last_name}`}</h2>
+
       </div>
       <div className="chat-messages">
         {messages.length > 0 ? (
