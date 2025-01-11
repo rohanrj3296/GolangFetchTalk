@@ -28,6 +28,7 @@ func main() {
 	r.HandleFunc("/savemessage",db.SaveMessageHandler).Methods("POST")
 	r.HandleFunc("/getmessages",db.GetMessagesWithSenderReceiverIDSHandler).Methods("POST")
 	r.HandleFunc("/uploadprofilepicture",db.UploadProfilePicToDB).Methods("POST")
+	r.HandleFunc("/getallprofilepictures",db.GetAllProfilePictures).Methods("POST")
 	
 
 	// CORS configuration

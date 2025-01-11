@@ -256,3 +256,48 @@ func (m *Repository) UploadProfilePicToDB(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Image uploaded successfully!")
 }
+func (m *Repository) GetAllProfilePictures(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse the JSON request body
+	var request struct {
+		UserIds []string `json:"userIds"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch profile pictures from the database
+	profilePictures, err := m.DB.GetProfilePictures(request.UserIds)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to fetch profile pictures: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Prepare the response
+	response := make([]map[string]interface{}, 0)
+	for _, userID := range request.UserIds {
+		picture, exists := profilePictures[userID]
+		if !exists {
+			// User ID not found in the database
+			response = append(response, map[string]interface{}{
+				"user_id": userID,
+				"picture": "",
+			})
+		} else {
+			// User ID found, include the picture
+			response = append(response, map[string]interface{}{
+				"user_id": userID,
+				"picture": picture,
+			})
+		}
+	}
+
+	// Send the response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}

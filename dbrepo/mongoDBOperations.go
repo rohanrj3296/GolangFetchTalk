@@ -250,3 +250,39 @@ func (m *DBoperations) UploadImageToDB(user_id string, fileBytes []byte) error {
 
 	return nil
 }
+// GetProfilePictures fetches profile pictures for a list of user IDs
+func (m *DBoperations) GetProfilePictures(userIds []string) (map[string][]byte, error) {
+	db := m.GetDatabase()
+	profilePics := db.Collection("profilepics")
+
+	// Prepare a filter to find documents with user_ids in the provided list
+	filter := bson.M{"user_id": bson.M{"$in": userIds}}
+
+	// Fetch the matching profile pictures
+	cursor, err := profilePics.Find(context.Background(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch profile pictures: %v", err)
+	}
+	defer cursor.Close(context.Background())
+
+	// Prepare the result map
+	profilePictures := make(map[string][]byte)
+
+	// Iterate through the cursor and collect the data
+	for cursor.Next(context.Background()) {
+		var record struct {
+			UserID  string `bson:"user_id"`
+			Picture []byte `bson:"picture"`
+		}
+		if err := cursor.Decode(&record); err != nil {
+			return nil, fmt.Errorf("failed to decode record: %v", err)
+		}
+		profilePictures[record.UserID] = record.Picture
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %v", err)
+	}
+
+	return profilePictures, nil
+}

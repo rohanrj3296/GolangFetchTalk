@@ -17,19 +17,58 @@ const ChatInterface = () => {
       const userEmail = getUserEmail();
 
       try {
+        // Fetch all users
         const usersResponse = await fetch("http://localhost:8080/chat");
         if (!usersResponse.ok) {
           throw new Error(`Error fetching users: ${usersResponse.status}`);
         }
         const usersData = await usersResponse.json();
 
+        // Identify the logged-in user
         const loggedInUser = usersData.find((user) => user.email === userEmail);
         setCurrentUser(loggedInUser);
 
+        // Filter out the logged-in user and set other users
         const filteredUsers = usersData.filter(
           (user) => user.email !== userEmail
         );
         setUsers(filteredUsers);
+
+        // Extract user IDs, including the current user's ID
+        const userIds = [
+          ...filteredUsers.map((user) => user._id),
+          loggedInUser?._id,
+        ].filter(Boolean);
+
+        const requestBody = { userIds };
+        console.log("Sending to backend:", JSON.stringify(requestBody));
+
+        const profilePicsResponse = await fetch("http://localhost:8080/getallprofilepictures", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!profilePicsResponse.ok) {
+          throw new Error(`Error fetching profile pictures: ${profilePicsResponse.status}`);
+        }
+
+        // Log the JSON response to inspect the data
+        const profilePicsData = await profilePicsResponse.json();
+        console.log("Profile Pictures Data:", profilePicsData);
+
+        // Map profile pictures data to users
+        const usersWithPictures = filteredUsers.map((user) => {
+          const pictureData = profilePicsData.find((pic) => pic.user_id === user._id);
+          return {
+            ...user,
+            picture: pictureData?.picture || "",
+          };
+        });
+
+        setUsers(usersWithPictures);
       } catch (error) {
         console.error("Error during data fetching:", error);
       }
@@ -80,18 +119,18 @@ const ChatInterface = () => {
               <li
                 key={user._id}
                 onClick={() => setSelectedConversation(user)}
-                className={
-                  selectedConversation?._id === user._id ? "active" : ""
-                }
+                className={selectedConversation?._id === user._id ? "active" : ""}
                 data-user-id={user._id}
               >
                 <img
-                  src={`https://via.placeholder.com/50?text=${
-                    user.first_name?.charAt(0) || "U"
-                  }${user.last_name?.charAt(0) || ""}`}
-                  alt={`${user.first_name || "Unknown"} ${
-                    user.last_name || ""
-                  }`}
+                  src={
+                    user.picture && user.picture !== "" // If the picture exists
+                      ? `data:image/jpeg;base64,${user.picture}` // Display profile picture from base64 binary
+                      : `https://via.placeholder.com/50?text=${
+                          user.first_name?.charAt(0) || "U"
+                        }${user.last_name?.charAt(0) || ""}` // Fallback to placeholder
+                  }
+                  alt={`${user.first_name || "Unknown"} ${user.last_name || ""}`}
                 />
                 <div className="contact-info">
                   <div className="name">
