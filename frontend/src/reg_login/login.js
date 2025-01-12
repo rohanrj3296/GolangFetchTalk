@@ -60,7 +60,17 @@ const LoginForm = () => {
          <li style={{fontWeight:"bold"}}>FetchTalk</li>
         </span>
         <ul>
-          <li style={{ fontWeight: "bold" }}>Home</li>
+          <li  style={{ fontWeight: "bold" }}><Link
+              to="/"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              Home
+            </Link></li>
           <li>
             <Link
               to="/register"

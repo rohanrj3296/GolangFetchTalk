@@ -53,12 +53,7 @@ const ProfileModal = ({ currentUser, onClose }) => {
       formData.append("userId", currentUser._id); // Include user ID or relevant identifier
 
       // Log the formData contents
-      console.log("Posting the following data:");
-      console.log("User ID:", currentUser._id);
-      console.log("Image File Name:", file.name);
-      console.log("Image File Type:", file.type);
-      console.log("Image File Size:", file.size);
-      console.log("The Image Data IS:", formData);
+      
 
       try {
         const response = await fetch("http://localhost:8080/uploadprofilepicture", {

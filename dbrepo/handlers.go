@@ -95,7 +95,6 @@ func (m *Repository) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString,err:=token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
-		fmt.Println(err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -160,7 +159,7 @@ func (m *Repository) SaveMessageHandler(w http.ResponseWriter, r *http.Request) 
     now := primitive.NewDateTimeFromTime(time.Now())
     message.CreatedAt = now
     message.UpdatedAt = now
-	fmt.Println(message)
+
 
     // Insert message into the database using InsertMessageIntoDB
     err = m.DB.InsertMessageIntoDB(message)
@@ -191,8 +190,7 @@ func (m *Repository) GetMessagesWithSenderReceiverIDSHandler(w http.ResponseWrit
         http.Error(w, "Invalid JSON body", http.StatusBadRequest)
         return
     }
-	fmt.Println(requestBody.SenderID)
-	fmt.Println(requestBody.ReceiverID)
+	
     // Validate the parsed data
     if requestBody.SenderID == "" || requestBody.ReceiverID == "" {
         http.Error(w, "Missing sender_id or receiver_id in the request body", http.StatusBadRequest)
@@ -250,11 +248,10 @@ func (m *Repository) UploadProfilePicToDB(w http.ResponseWriter, r *http.Request
 		http.Error(w, fmt.Sprintf("Failed to upload image: %v", err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("User ID:", r.FormValue("userId")) // Debugging log to check user ID
 
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Image uploaded successfully!")
+	
 }
 func (m *Repository) GetAllProfilePictures(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {

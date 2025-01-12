@@ -10,7 +10,7 @@ body {
 .navbar {
   display: flex;
   justify-content: space-between;
-  background-color: #343a40;
+  background-color:rgb(18, 174, 73);
   color: white;
   padding: 10px 20px;
 }
@@ -76,6 +76,6 @@ button:hover {
     width:20%;
     position: center;
     background-color: green;
-    color: #343a40;
+    color:rgb(19, 205, 96);
     
 }

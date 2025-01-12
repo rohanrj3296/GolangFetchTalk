@@ -38,7 +38,7 @@ const ChatInterface = () => {
         ].filter(Boolean);
 
         const requestBody = { userIds };
-        console.log("Sending to backend:", JSON.stringify(requestBody));
+        
 
         const profilePicsResponse = await fetch(
           "http://localhost:8080/getallprofilepictures",
@@ -58,7 +58,7 @@ const ChatInterface = () => {
         }
 
         const profilePicsData = await profilePicsResponse.json();
-        console.log("Profile Pictures Data:", profilePicsData);
+        
 
         const usersWithPictures = filteredUsers.map((user) => {
           const pictureData = profilePicsData.find(
@@ -72,7 +72,7 @@ const ChatInterface = () => {
 
         setUsers(usersWithPictures);
       } catch (error) {
-        console.error("Error during data fetching:", error);
+        
       }
     };
 
