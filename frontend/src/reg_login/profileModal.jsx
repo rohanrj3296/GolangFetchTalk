@@ -1,8 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./profileModal.css"; // CSS file for styling the modal
 
 const ProfileModal = ({ currentUser, onClose }) => {
   const [showPictureOptions, setShowPictureOptions] = useState(false);
+  const [profilePicture, setProfilePicture] = useState("");
+  const [viewedPicture, setViewedPicture] = useState(null); // State for viewed picture
+
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      if (currentUser) {
+        try {
+          const response = await fetch("http://localhost:8080/getallprofilepictures", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userIds: [currentUser._id] }),
+          });
+
+          if (response.ok) {
+            const profilePicsData = await response.json();
+            const pictureData = profilePicsData.find(
+              (pic) => pic.user_id === currentUser._id
+            );
+            setProfilePicture(pictureData?.picture || "");
+          } else {
+            console.error("Failed to fetch profile picture.");
+          }
+        } catch (error) {
+          console.error("Error fetching profile picture:", error);
+        }
+      }
+    };
+
+    fetchProfilePicture();
+  }, [currentUser]);
 
   if (!currentUser) {
     return null; // Don't render the modal if the currentUser is null
@@ -25,7 +57,7 @@ const ProfileModal = ({ currentUser, onClose }) => {
       console.log("Image File Name:", file.name);
       console.log("Image File Type:", file.type);
       console.log("Image File Size:", file.size);
-      console.log("The Image Data IS:",formData);
+      console.log("The Image Data IS:", formData);
 
       try {
         const response = await fetch("http://localhost:8080/uploadprofilepicture", {
@@ -35,6 +67,22 @@ const ProfileModal = ({ currentUser, onClose }) => {
 
         if (response.ok) {
           alert("Image uploaded successfully!");
+          // Fetch the updated profile picture
+          const updatedProfilePicsResponse = await fetch("http://localhost:8080/getallprofilepictures", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userIds: [currentUser._id] }),
+          });
+
+          if (updatedProfilePicsResponse.ok) {
+            const updatedProfilePicsData = await updatedProfilePicsResponse.json();
+            const updatedPictureData = updatedProfilePicsData.find(
+              (pic) => pic.user_id === currentUser._id
+            );
+            setProfilePicture(updatedPictureData?.picture || "");
+          }
         } else {
           alert("Failed to upload image.");
         }
@@ -43,6 +91,10 @@ const ProfileModal = ({ currentUser, onClose }) => {
         alert("Error uploading image.");
       }
     }
+  };
+
+  const handleViewClick = () => {
+    setViewedPicture(profilePicture ? `data:image/jpeg;base64,${profilePicture}` : null);
   };
 
   return (
@@ -57,16 +109,20 @@ const ProfileModal = ({ currentUser, onClose }) => {
             onClick={handleProfilePictureClick}
           >
             <img
-              src={`https://via.placeholder.com/100?text=${
-                currentUser.first_name?.charAt(0) || "U"
-              }${currentUser.last_name?.charAt(0) || ""}`}
+              src={
+                profilePicture
+                  ? `data:image/jpeg;base64,${profilePicture}`
+                  : `https://via.placeholder.com/100?text=${
+                      currentUser.first_name?.charAt(0) || "U"
+                    }${currentUser.last_name?.charAt(0) || ""}`
+              }
               alt="Profile"
               className="profile-picture"
             />
           </div>
           {showPictureOptions && (
             <div className="picture-options">
-              <button className="view-btn">View</button>
+              <button className="view-btn" onClick={handleViewClick}>View</button>
               <label className="change-btn">
                 Change
                 <input
@@ -92,6 +148,61 @@ const ProfileModal = ({ currentUser, onClose }) => {
           </p>
         </div>
       </div>
+
+      {viewedPicture && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "14cm",
+              height: "14cm",
+              borderRadius: "50%",
+              overflow: "hidden",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={viewedPicture}
+              alt="Viewed"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+            />
+            <button
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "none",
+                border: "none",
+                fontSize: "36px",
+                color: "white",
+                cursor: "pointer",
+              }}
+              onClick={() => setViewedPicture(null)}
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
