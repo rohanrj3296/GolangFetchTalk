@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./profileModal.css"; // CSS file for styling the modal
+import Swal from "sweetalert2";
 
 const ProfileModal = ({ currentUser, onClose }) => {
   const [showPictureOptions, setShowPictureOptions] = useState(false);
@@ -66,7 +67,11 @@ const ProfileModal = ({ currentUser, onClose }) => {
         });
 
         if (response.ok) {
-          alert("Image uploaded successfully!");
+           Swal.fire({
+                    icon: "success",
+                    title: "Profile Picture Updated Successfully!!",
+                    showConfirmButton: true,
+                  });
           // Fetch the updated profile picture
           const updatedProfilePicsResponse = await fetch("http://localhost:8080/getallprofilepictures", {
             method: "POST",
@@ -84,11 +89,18 @@ const ProfileModal = ({ currentUser, onClose }) => {
             setProfilePicture(updatedPictureData?.picture || "");
           }
         } else {
-          alert("Failed to upload image.");
+          Swal.fire({
+            icon: "error",
+            title: "Failed To Update Profile Picture!! ",
+            showConfirmButton: true,
+          });
         }
       } catch (error) {
-        console.error("Error uploading image:", error);
-        alert("Error uploading image.");
+        Swal.fire({
+          icon: "error",
+          title: "Failed To Update Profile Picture!! ",
+          showConfirmButton: true,
+        });
       }
     }
   };
