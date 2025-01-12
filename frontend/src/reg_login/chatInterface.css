@@ -12,12 +12,12 @@
 }
 
 [data-theme="dark"] {
-  --bg: var(--bg-dark);
+  --bg: rgba(248, 28, 215, 0.65);
   --text: var(--text-dark);
 }
 
 [data-theme="olive-green"] {
-  --bg: rgb(170, 202, 128); /* Background color */
+  --bg: rgba(11, 223, 25, 0.53); /* Background color */
   --text: rgba(21, 3, 3, 0.98); /* Text color (white for better contrast) */
 }
 

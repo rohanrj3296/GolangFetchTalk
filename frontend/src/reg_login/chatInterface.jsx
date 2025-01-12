@@ -98,15 +98,7 @@ const ChatInterface = () => {
           <button onClick={() => setShowSettings(!showSettings)}>Theme</button>
           {currentUser && (
             <div className="user-profile-display">
-              <img
-                src={`https://via.placeholder.com/50?text=${
-                  currentUser.first_name?.charAt(0) || "U"
-                }${currentUser.last_name?.charAt(0) || ""}`}
-                alt={`${currentUser.first_name || "User"} ${
-                  currentUser.last_name || ""
-                }`}
-                className="profile-picture"
-              />
+              
               <div className="profile-info">
                 {`${currentUser.first_name || "User"} ${
                   currentUser.last_name || ""
@@ -191,9 +183,9 @@ const ChatInterface = () => {
           </div>
           <div className="theme-options">
             <button onClick={() => handleThemeChange("light")}>Light</button>
-            <button onClick={() => handleThemeChange("dark")}>Dark</button>
+            
             <button onClick={() => handleThemeChange("olive-green")}>
-              Olive-Green
+              Green
             </button>
           </div>
         </div>

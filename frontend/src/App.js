@@ -6,6 +6,7 @@ import LoginForm from "./reg_login/login"; //importing the Login Form
 import ChatInterface from "./reg_login/chatInterface";
 
 
+
 const App = () => {
   return (
     <Router>
@@ -13,6 +14,7 @@ const App = () => {
         <Route path="/register" element={<RegistrationForm />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/chat" element={<ChatInterface />} />
+        
         
         
       </Routes>

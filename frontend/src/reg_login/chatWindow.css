@@ -105,3 +105,9 @@
   min-width: 80px; /* Ensures button doesn't shrink too much */
   width: auto; /* Adapts to content */
 }
+.message-image {
+  max-width: 150px; /* Set a maximum width */
+  max-height: 150px; /* Set a maximum height */
+  border-radius: 8px; /* Optional: Add rounded corners for aesthetics */
+  object-fit: cover; /* Ensures the image doesn't distort */
+}
