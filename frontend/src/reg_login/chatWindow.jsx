@@ -67,7 +67,7 @@ const ChatWindow = ({ selectedUser, currentUser }) => {
 
       const interval = setInterval(() => {
         fetchMessages();
-      }, 1000); // Poll every 1 second
+      }, 500); // Poll every 1 second
 
       return () => {
         clearInterval(interval); // Clean up interval on unmount

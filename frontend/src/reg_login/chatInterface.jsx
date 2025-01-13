@@ -4,6 +4,7 @@ import { getUserEmail } from "../utils/token";
 import ChatWindow from "../reg_login/chatWindow"; // Import the new ChatWindow component
 import ProfileModal from "../reg_login/profileModal"; // Import ProfileModal
 
+
 const ChatInterface = () => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -38,7 +39,6 @@ const ChatInterface = () => {
         ].filter(Boolean);
 
         const requestBody = { userIds };
-        
 
         const profilePicsResponse = await fetch(
           "http://localhost:8080/getallprofilepictures",
@@ -58,7 +58,6 @@ const ChatInterface = () => {
         }
 
         const profilePicsData = await profilePicsResponse.json();
-        
 
         const usersWithPictures = filteredUsers.map((user) => {
           const pictureData = profilePicsData.find(
@@ -72,7 +71,7 @@ const ChatInterface = () => {
 
         setUsers(usersWithPictures);
       } catch (error) {
-        
+        // Handle errors (optional)
       }
     };
 
@@ -88,17 +87,27 @@ const ChatInterface = () => {
     setViewedPicture(picture);
   };
 
+  const handleLogout = () => {
+    // Remove the token from localStorage
+    localStorage.removeItem("authToken");
+
+    // Redirect to login page
+    window.location.href = "/"; // Redirecting to home page
+    alert("Logged Out Successfully!!!")
+
+    
+  };
+
   return (
     <div className={`chat-interface ${theme}`}>
       <nav className="navbar">
         <div className="navbar-brand">FetchTalk</div>
         <div className="navbar-links">
           <button onClick={() => setShowProfileModal(true)}>Profile</button>
-          <button>Logout</button>
+          <button onClick={handleLogout}>Logout</button> {/* Logout button */}
           <button onClick={() => setShowSettings(!showSettings)}>Theme</button>
           {currentUser && (
             <div className="user-profile-display">
-              
               <div className="profile-info">
                 {`${currentUser.first_name || "User"} ${
                   currentUser.last_name || ""
@@ -183,7 +192,6 @@ const ChatInterface = () => {
           </div>
           <div className="theme-options">
             <button onClick={() => handleThemeChange("light")}>Light</button>
-            
             <button onClick={() => handleThemeChange("olive-green")}>
               Green
             </button>
